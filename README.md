@@ -5,9 +5,9 @@ This tool is a fork from https://code.google.com/archive/p/dsf2flac/
 
 Support conversion from dsf or dff to wav files via DoP. DSD256 is also supported by converting in a wav file (flac does not support sample rates above 655350).
 
-Compiling
+#Compiling
 
-download zip or clone. Make directory build then:
+download zip or clone. Make directory build under dsf2flac root dir then:
 
 cmake ..
 
@@ -15,4 +15,8 @@ and:
 
 make
 
-Tested up to DSD256 dsf to wav conversion with ADI 2 DAC.
+#FFmpeg DSD256 pipe:
+
+dsf2flac -d -w -i <pathtofile> -o -  | ffmpeg -i - -c pcm_s32le -f alsa iec958:CARD=DAC57750571,DEV=0
+
+Tested up to DSD256 dsf to DoP wav conversion plays well with rme ADI 2 DAC.
