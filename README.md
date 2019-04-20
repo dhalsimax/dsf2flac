@@ -17,6 +17,6 @@ ds2flac/build # make
 
 # FFmpeg DSD256 ADI2 DAC pipe example:
 
-dsf2flac -d -w -i "<pathtofile>" -o -  | ffmpeg -i - -c pcm_s32le -f alsa iec958:CARD=DAC57750571,DEV=0
+dsf2flac -d -w -i "pathtofile" -o -  | ffmpeg -i - -c pcm_s32le -f alsa iec958:CARD=DAC57750571,DEV=0
 
 Tested up to DSD256 dsf to DoP wav conversion plays well with rme ADI 2 DAC.
