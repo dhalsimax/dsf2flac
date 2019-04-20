@@ -1,4 +1,4 @@
-# dsf2flac dop dsd256
+# dsf2flac.dop.dsd256
 Updated conversion tool for DSD files
 
 This tool is a fork from https://code.google.com/archive/p/dsf2flac/
