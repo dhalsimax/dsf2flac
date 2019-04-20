@@ -7,13 +7,13 @@ Support conversion from dsf or dff to wav files via DoP. DSD256 is also supporte
 
 # Compiling
 
-download zip or clone. Make directory build under dsf2flac root dir then:
+download zip or clone. Make directory "build" under dsf2flac root dir then:
 
-cmake ..
+ds2flac/build # cmake ..
 
 and:
 
-make
+ds2flac/build # make
 
 # FFmpeg DSD256 ADI2 DAC pipe example:
 
