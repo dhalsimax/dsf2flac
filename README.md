@@ -24,3 +24,8 @@ ds2flac/build # make
 dsf2flac -d -w -i "pathtofile" -o -  | ffmpeg -i - -c pcm_s32le -f alsa iec958:CARD=DAC57750571,DEV=0
 
 Well tested up to DSD256 dsf to DoP wav conversion with rme ADI 2 DAC.
+
+Replace all after ffmpeg -f parameter with your alsa device name to try out. List of available alsa device neames can be obtained with alsa command:
+
+aplay -L
+
