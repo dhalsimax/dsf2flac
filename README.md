@@ -2,7 +2,8 @@
 Updated conversion tool for DSD files
 
 This tool is a fork from https://code.google.com/archive/p/dsf2flac/
-Wav file writing from AudioFile.h is a modified version from https://github.com/adamstark/AudioFile
+
+AudioFile.h is a modified version from https://github.com/adamstark/AudioFile
 
 I wish many thanks to all the authors involved in such tool. For me this is the only free way to play DSD256 files on my dac without getting mad.
 
