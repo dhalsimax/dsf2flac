@@ -46,8 +46,8 @@ public:
     AudioFile() {
         bitDepth = 16;
         sampleRate = 44100;
-        samples.resize(1);
-        samples[0].resize(0);
+        numSamples = 0;
+        numChannels = 0;
     }
 
 
@@ -60,7 +60,7 @@ public:
 
     /** @Returns the number of audio channels in the buffer */
     int getNumChannels() const {
-        return (int) samples.size();
+        return numChannels;
     }
 
     /** @Returns true if the audio file is mono */
@@ -80,10 +80,7 @@ public:
 
     /** @Returns the number of samples per channel */
     int getNumSamplesPerChannel() const {
-        if (samples.size() > 0)
-            return (int) samples[0].size();
-        else
-            return 0;
+        return numSamples;
     }
 
     /** @Returns the length in seconds of the audio file based on the number of samples and sample rate */
@@ -93,76 +90,28 @@ public:
 
     /** Prints a summary of the audio file to the console */
     void printSummary() const {
-        std::cerr << "|======================================|" << std::endl;
+        std::cerr << "|=============WAVE FILE SUMMARY=============|" << std::endl;
         std::cerr << "Num Channels: " << getNumChannels() << std::endl;
         std::cerr << "Num Samples Per Channel: " << getNumSamplesPerChannel() << std::endl;
-        std::cerr << "Sample Rate: " << sampleRate << std::endl;
-        std::cerr << "Bit Depth: " << bitDepth << std::endl;
+        std::cerr << "Sample Rate: " << getSampleRate() << std::endl;
+        std::cerr << "Bit Depth: " << getBitDepth() << std::endl;
         std::cerr << "Length in Seconds: " << getLengthInSeconds() << std::endl;
-        std::cerr << "|======================================|" << std::endl;
+        std::cerr << "Sample size in bytes: " << sizeof (T) << std::endl;
+        std::cerr << "|===========================================|" << std::endl;
     }
 
     //=============================================================
 
-    /** Set the audio buffer for this AudioFile by copying samples from another buffer.
-     * @Returns true if the buffer was copied successfully.
-     */
-    bool setAudioBuffer(AudioBuffer& newBuffer) {
-        int numChannels = (int) newBuffer.size();
-
-        if (numChannels <= 0) {
-            assert(false && "The buffer your are trying to use has no channels");
-            return false;
-        }
-
-        std::swap(samples, newBuffer);
-
-        return true;
-    }
-
-    /** Sets the audio buffer to a given number of channels and number of samples per channel. This will try to preserve
-     * the existing audio, adding zeros to any new channels or new samples in a given channel.
-     */
-    void setAudioBufferSize(int numChannels, int numSamples) {
-        samples.resize(numChannels);
-        setNumSamplesPerChannel(numSamples);
-    }
-
     /** Sets the number of samples per channel in the audio buffer. This will try to preserve
      * the existing audio, adding zeros to new samples in a given channel if the number of samples is increased.
      */
-    void setNumSamplesPerChannel(int numSamples) {
-        int originalSize = getNumSamplesPerChannel();
-
-        for (int i = 0; i < getNumChannels(); i++) {
-            samples[i].resize(numSamples);
-
-            // set any new samples to zero
-            if (numSamples > originalSize) {
-                T Tmp;
-                memset(&Tmp, 0, sizeof (Tmp));
-                std::fill(samples[i].begin() + originalSize, samples[i].end(), Tmp);
-            }
-        }
+    void setNumSamples(int aNumSamples) {
+        numSamples = aNumSamples;
     }
 
     /** Sets the number of channels. New channels will have the correct number of samples and be initialised to zero */
-    void setNumChannels(int numChannels) {
-        int originalNumChannels = getNumChannels();
-        int originalNumSamplesPerChannel = getNumSamplesPerChannel();
-
-        samples.resize(numChannels);
-
-        // make sure any new channels are set to the right size
-        // and filled with zeros
-        if (numChannels > originalNumChannels) {
-            for (int i = originalNumChannels; i < numChannels; i++) {
-                samples[i].resize(originalNumSamplesPerChannel);
-                T Tmp;
-                memset(&Tmp, 0, sizeof (Tmp));
-                std::fill(samples[i].begin(), samples[i].end(), Tmp);
-            }
-        }
+    void setNumChannels(int aNumChannels) {
+        numChannels = aNumChannels;
     }
 
     /** Sets the bit depth for the audio file. If you use the save() function, this bit depth rate will be used */
@@ -177,20 +126,12 @@ public:
 
 
     //=============================================================
-    /** A vector of vectors holding the audio samples for the AudioFile. You can
-     * access the samples by channel and then by sample index, i.e:
-     *
-     *      samples[channel][sampleIndex]
-     */
-    AudioBuffer samples;
 
-    //=============================================================
-
-    bool save(std::string filePath) {
-        std::vector<uint8_t> fileData;
+    void getHeaderData(std::vector<uint8_t>& fileData) {
+        fileData.clear();
 
 
-        int32_t dataChunkSize = getNumSamplesPerChannel() * (getNumChannels() * bitDepth / 8);
+        int32_t dataChunkSize = getNumSamplesPerChannel() * (getNumChannels() * getBitDepth() / 8);
 
         // -----------------------------------------------------------
         // HEADER CHUNK
@@ -209,20 +150,23 @@ public:
         addInt32ToFileData(fileData, 16); // format chunk size (16 for PCM)
         addInt16ToFileData(fileData, 1); // audio format = 1
         addInt16ToFileData(fileData, (int16_t) getNumChannels()); // num channels
-        addInt32ToFileData(fileData, (int32_t) sampleRate); // sample rate
+        addInt32ToFileData(fileData, (int32_t) getSampleRate()); // sample rate
 
-        int32_t numBytesPerSecond = (int32_t) ((getNumChannels() * sampleRate * bitDepth) / 8);
+        int32_t numBytesPerSecond = (int32_t) ((getNumChannels() * getSampleRate() * getBitDepth()) / 8);
         addInt32ToFileData(fileData, numBytesPerSecond);
 
-        int16_t numBytesPerBlock = getNumChannels() * (bitDepth / 8);
+        int16_t numBytesPerBlock = getNumChannels() * (getBitDepth() / 8);
         addInt16ToFileData(fileData, numBytesPerBlock);
 
-        addInt16ToFileData(fileData, (int16_t) bitDepth);
+        addInt16ToFileData(fileData, (int16_t) getBitDepth());
 
         // -----------------------------------------------------------
         // DATA CHUNK
         addStringToFileData(fileData, "data");
         addInt32ToFileData(fileData, dataChunkSize);
+    }
+
+    bool save(std::string filePath, const AudioBuffer& samples) {
 
         std::ofstream* out = NULL;
 
@@ -236,6 +180,17 @@ public:
                 return false;
             }
         }
+
+        std::vector<uint8_t> fileData;
+
+        getHeaderData(fileData);
+
+        setNumChannels(samples.size());
+        if (getNumChannels() == 0) {
+            return false;
+        }
+
+        setNumSamples(samples[0].size());
 
         if (out != NULL) {
             out->write((char*) fileData.data(), fileData.size());
@@ -271,16 +226,6 @@ private:
         BigEndian
     };
 
-
-    //=============================================================
-
-    void clearAudioBuffer() {
-        for (size_t i = 0; i < samples.size(); i++) {
-            samples[i].clear();
-        }
-
-        samples.clear();
-    }
 
 
     //=============================================================
@@ -369,6 +314,8 @@ private:
     //=============================================================
     uint32_t sampleRate;
     int bitDepth;
+    size_t numSamples;
+    uint8_t numChannels;
 };
 
 
