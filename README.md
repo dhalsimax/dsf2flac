@@ -2,8 +2,11 @@
 Updated conversion tool for DSD files
 
 This tool is a fork from https://code.google.com/archive/p/dsf2flac/
+Wav file writing from AudioFile.h is a modified version from https://github.com/adamstark/AudioFile
 
-Support conversion from dsf or dff to wav files via DoP. DSD256 is also supported by converting source dsf or dff to a DoP stream encapsulated in a wav file 705600hz 24 bit (flac does not support sample rates above 655350).
+I wish many thanks to all the authors involved in such tool. For me this is the only free way to play DSD256 files on my dac without getting mad.
+
+Support conversion from dsf or dff to wav files via DoP. DSD256 is supported by converting source dsf or dff to a DoP stream encapsulated in a 2 channels wav file 705600hz, 24 bit as flac actually does not support sample rates above 655350.
 
 # Compiling
 
