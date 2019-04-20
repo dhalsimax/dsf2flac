@@ -420,49 +420,8 @@ int dop_track_helper_wave(
     // flac vars
     bool ok = true;
 
-    AudioFile<DopSample>::AudioBuffer Samples;
-    Samples.resize(dsr->getNumChannels());
-
-    // creep up to the start point.
-    while (dsr->getPosition() < startPos) {
-        dsr->step();
-    }
-    // create a FLAC__int32 buffer to hold the samples as they are converted
-    unsigned int bufferLen = dsr->getNumChannels() * flacBlockLen;
-    FLAC__int32* buffer = new FLAC__int32[bufferLen];
-    size_t NumSamples = bufferLen / dsr->getNumChannels();
-    DopSample Tmp;
-    // MAIN CONVERSION LOOP //
-    while (dsr->getPosition() <= endPos - flacBlockLen) {
-        dopp.pack_buffer(buffer, bufferLen);
-        for (size_t s = 0; s < NumSamples; s++) {
-            for (size_t c = 0; c < dsr->getNumChannels(); c++) {
-
-
-                memcpy(&Tmp, &buffer[s * dsr->getNumChannels() + c], sizeof (Tmp));
-                Samples[c].push_back(Tmp);
-            }
-        }
-        checkTimer(dsr->getPositionInSeconds(), dsr->getPositionAsPercent());
-    }
-    // delete the old buffer and make a new one with a single sample per chan
-    delete[] buffer;
-    bufferLen = dsr->getNumChannels();
-    buffer = new FLAC__int32[bufferLen];
-    // creep up to the end
-    while (dsr->getPosition() <= endPos) {
-        dopp.pack_buffer(buffer, bufferLen);
-        for (size_t c = 0; c < dsr->getNumChannels(); c++) {
-            memcpy(&Tmp, &buffer[c], sizeof (Tmp));
-            Samples[c].push_back(Tmp);
-        }
-        checkTimer(dsr->getPositionInSeconds(), dsr->getPositionAsPercent());
-    }
-    delete[] buffer;
 
     AudioFile<DopSample> File;
-
-    File.setAudioBuffer(Samples);
 
     if (dsr->getSamplingFreq() == 2822400) {
         File.setSampleRate(176400);
@@ -475,16 +434,97 @@ int dop_track_helper_wave(
         return 0;
     }
 
+    File.setBitDepth(24);
+    File.setNumChannels(dsr->getNumChannels());
+    File.setNumSamples(endPos / 16);
+    File.printSummary();
+
+    std::ofstream* out = NULL;
+
+    if (outpath != "-") {
+        out = new ofstream(outpath.c_str(), std::ios::binary);
+        if (out == NULL) {
+            return false;
+        }
+        if (!out->is_open()) {
+            delete out;
+            return false;
+        }
+    }
+
+    std::vector<uint8_t> fileData;
+
+    File.getHeaderData(fileData);
+
+    if (out != NULL) {
+        out->write((char*) fileData.data(), fileData.size());
+    } else {
+        std::cout.write((char*) fileData.data(), fileData.size());
+    }
+
+    // creep up to the start point.
+    while (dsr->getPosition() < startPos) {
+        dsr->step();
+    }
+    // create a FLAC__int32 buffer to hold the samples as they are converted
+    unsigned int bufferLen = dsr->getNumChannels() * flacBlockLen;
+    FLAC__int32* buffer = new FLAC__int32[bufferLen];
+    size_t NumSamples = bufferLen / dsr->getNumChannels();
+
+    DopSample Tmp;
+
+    // MAIN CONVERSION LOOP //
+    while (dsr->getPosition() <= endPos - flacBlockLen * 16) {
+        fileData.clear();
+        dopp.pack_buffer(buffer, bufferLen);
+        for (size_t s = 0; s < NumSamples; s++) {
+            for (size_t c = 0; c < dsr->getNumChannels(); c++) {
+                memcpy(&Tmp, &buffer[s * dsr->getNumChannels() + c], sizeof (Tmp));
+                fileData.push_back(Tmp.Bits1);
+                fileData.push_back(Tmp.Bits2);
+                fileData.push_back(Tmp.Marker);
+            }
+        }
+        if (out != NULL) {
+            out->write((char*) fileData.data(), fileData.size());
+        } else {
+            std::cout.write((char*) fileData.data(), fileData.size());
+        }
+        checkTimer(dsr->getPositionInSeconds(), dsr->getPositionAsPercent());
+    }
+    // delete the old buffer and make a new one with a single sample per chan
+    delete[] buffer;
+    bufferLen = dsr->getNumChannels();
+    buffer = new FLAC__int32[bufferLen];
+    // creep up to the end
+    while (dsr->getPosition() <= endPos) {
+        fileData.clear();
+        dopp.pack_buffer(buffer, bufferLen);
+        for (size_t s = 0; s < NumSamples; s++) {
+            for (size_t c = 0; c < dsr->getNumChannels(); c++) {
+                memcpy(&Tmp, &buffer[s * dsr->getNumChannels() + c], sizeof (Tmp));
+                fileData.push_back(Tmp.Bits1);
+                fileData.push_back(Tmp.Bits2);
+                fileData.push_back(Tmp.Marker);
+            }
+        }
+        if (out != NULL) {
+            out->write((char*) fileData.data(), fileData.size());
+        } else {
+            std::cout.write((char*) fileData.data(), fileData.size());
+        }
+        checkTimer(dsr->getPositionInSeconds(), dsr->getPositionAsPercent());
+    }
+    delete[] buffer;
+
+    if (out != NULL) {
+        out->close();
+        delete out;
+    }
 
     // report back to the user
     fprintf(stderr, "\33[2K\r");
     fprintf(stderr, "%3.1f%%\t\n", dsr->getPositionAsPercent());
-
-    File.setBitDepth(24);
-
-    File.printSummary();
-
-    ok &= File.save(outpath.c_str());
 
     if (ok) {
         fprintf(stderr, "Conversion completed sucessfully.\n");
