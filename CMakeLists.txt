@@ -4,10 +4,10 @@ project(dsf2flac)
 # check OS before we start
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # On Linux a static executable is made, this maximises portability.
-    #set(static 1)
+    set(static 0)
 
     # link to librt (possibly not required but need to check with compressed dsf before removing).
-    set (link_rt 1)
+    set (link_rt 0)
 
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # On OSX statically linked executables are not allowed so instead a dynamic one is made.
@@ -26,7 +26,7 @@ set(CMAKE_CXX_FLAGS "-O3 -Wall")
 # linker options
 if ( static )
     set(CMAKE_EXE_LINKER_FLAGS "-static")
-    #set(Boost_USE_STATIC_LIBS   ON)
+    set(Boost_USE_STATIC_LIBS   ON)
 else()
     set(CMAKE_EXE_LINKER_FLAGS "")
 endif()

@@ -453,14 +453,14 @@ int dop_track_helper_wave(
         }
     }
 
-    std::vector<uint8_t> fileData;
+    std::vector<uint8_t> headerData;
 
-    File.getHeaderData(fileData);
+    File.getHeaderData(headerData);
 
     if (out != NULL) {
-        out->write((char*) fileData.data(), fileData.size());
+        out->write((char*) headerData.data(), headerData.size());
     } else {
-        std::cout.write((char*) fileData.data(), fileData.size());
+        std::cout.write((char*) headerData.data(), headerData.size());
     }
 
     // creep up to the start point.
@@ -468,30 +468,25 @@ int dop_track_helper_wave(
         dsr->step();
     }
     // create a FLAC__int32 buffer to hold the samples as they are converted
-    unsigned int bufferLen = dsr->getNumChannels() * waveBlockLen;
+    size_t bufferLen = dsr->getNumChannels() * waveBlockLen;
     FLAC__int32* buffer = new FLAC__int32[bufferLen];
     size_t NumChannels = dsr->getNumChannels();
-    size_t NumSamples = bufferLen / NumChannels;
 
-    DopSample* Tmp;
+    std::vector<DopSample> samplesData(waveBlockLen * NumChannels);
 
     // MAIN CONVERSION LOOP //
     while (dsr->getPosition() <= endPos - waveBlockLen) {
-        fileData.clear();
+        samplesData.clear();
         dopp.pack_buffer(buffer, bufferLen);
-        for (size_t s = 0; s < NumSamples; s++) {
+        for (size_t s = 0; s < waveBlockLen; s++) {
             for (size_t c = 0; c < NumChannels; c++) {
-                Tmp = (DopSample*) & buffer[s * NumChannels + c];
-
-                fileData.push_back(Tmp->Bits1);
-                fileData.push_back(Tmp->Bits2);
-                fileData.push_back(Tmp->Marker);
+                samplesData.push_back(*((DopSample*) & buffer[s * NumChannels + c]));
             }
         }
         if (out != NULL) {
-            out->write((char*) fileData.data(), fileData.size());
+            out->write((char*) samplesData.data(), samplesData.size() * sizeof (DopSample));
         } else {
-            std::cout.write((char*) fileData.data(), fileData.size());
+            std::cout.write((char*) samplesData.data(), samplesData.size() * sizeof (DopSample));
         }
         checkTimer(dsr->getPositionInSeconds(), dsr->getPositionAsPercent());
     }
@@ -500,22 +495,15 @@ int dop_track_helper_wave(
     bufferLen = dsr->getNumChannels();
     buffer = new FLAC__int32[bufferLen];
     // creep up to the end
-    while (dsr->getPosition() <= endPos) {
-        fileData.clear();
-        dopp.pack_buffer(buffer, bufferLen);
-        for (size_t s = 0; s < NumSamples; s++) {
-            for (size_t c = 0; c < NumChannels; c++) {
-                Tmp = (DopSample*) & buffer[s * NumChannels + c];
 
-                fileData.push_back(Tmp->Bits1);
-                fileData.push_back(Tmp->Bits2);
-                fileData.push_back(Tmp->Marker);
+    while (dsr->getPosition() <= endPos) {
+        dopp.pack_buffer(buffer, bufferLen);
+        for (size_t c = 0; c < NumChannels; c++) {
+            if (out != NULL) {
+                out->write((char*) (buffer + c), sizeof (DopSample));
+            } else {
+                std::cout.write((char*) (buffer + c), sizeof (DopSample));
             }
-        }
-        if (out != NULL) {
-            out->write((char*) fileData.data(), fileData.size());
-        } else {
-            std::cout.write((char*) fileData.data(), fileData.size());
         }
         checkTimer(dsr->getPositionInSeconds(), dsr->getPositionAsPercent());
     }

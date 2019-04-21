@@ -1,7 +1,23 @@
 //=======================================================================
 /** @file AudioFile.h
-    Modified version to support integer samples
-*/
+ *  @author Adam Stark
+ *  @copyright Copyright (C) 2017  Adam Stark
+ *
+ * This file is part of the 'AudioFile' library
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 //=======================================================================
 
 #ifndef _AS_AudioFile_h
@@ -43,7 +59,7 @@ public:
     }
 
     /** @Returns the number of audio channels in the buffer */
-    int getNumChannels() const {
+    uint16_t getNumChannels() const {
         return numChannels;
     }
 
@@ -58,12 +74,12 @@ public:
     }
 
     /** @Returns the bit depth of each sample */
-    int getBitDepth() const {
+    uint16_t getBitDepth() const {
         return bitDepth;
     }
 
     /** @Returns the number of samples per channel */
-    int getNumSamplesPerChannel() const {
+    size_t getNumSamplesPerChannel() const {
         return numSamples;
     }
 
@@ -89,17 +105,17 @@ public:
     /** Sets the number of samples per channel in the audio buffer. This will try to preserve
      * the existing audio, adding zeros to new samples in a given channel if the number of samples is increased.
      */
-    void setNumSamples(int aNumSamples) {
+    void setNumSamples(uint32_t aNumSamples) {
         numSamples = aNumSamples;
     }
 
     /** Sets the number of channels. New channels will have the correct number of samples and be initialised to zero */
-    void setNumChannels(int aNumChannels) {
+    void setNumChannels(uint32_t aNumChannels) {
         numChannels = aNumChannels;
     }
 
     /** Sets the bit depth for the audio file. If you use the save() function, this bit depth rate will be used */
-    void setBitDepth(int numBitsPerSample) {
+    void setBitDepth(uint16_t numBitsPerSample) {
         bitDepth = numBitsPerSample;
     }
 
@@ -115,15 +131,14 @@ public:
         fileData.clear();
 
 
-        int32_t dataChunkSize = getNumSamplesPerChannel() * (getNumChannels() * getBitDepth() / 8);
+        size_t dataChunkSize = getNumSamplesPerChannel() * getNumChannels() * getBitDepth() / 8;
 
         // -----------------------------------------------------------
         // HEADER CHUNK
         addStringToFileData(fileData, "RIFF");
 
-        // The file size in bytes is the header chunk size (4, not counting RIFF and WAVE) + the format
-        // chunk size (24) + the metadata part of the data chunk plus the actual data chunk size
-        int32_t fileSizeInBytes = 4 + 24 + 8 + dataChunkSize;
+
+        size_t fileSizeInBytes = dataChunkSize + 44 - 8;
         addInt32ToFileData(fileData, fileSizeInBytes);
 
         addStringToFileData(fileData, "WAVE");
@@ -133,21 +148,25 @@ public:
         addStringToFileData(fileData, "fmt ");
         addInt32ToFileData(fileData, 16); // format chunk size (16 for PCM)
         addInt16ToFileData(fileData, 1); // audio format = 1
-        addInt16ToFileData(fileData, (int16_t) getNumChannels()); // num channels
-        addInt32ToFileData(fileData, (int32_t) getSampleRate()); // sample rate
+        addInt16ToFileData(fileData, getNumChannels()); // num channels
+        addInt32ToFileData(fileData, getSampleRate()); // sample rate
 
-        int32_t numBytesPerSecond = (int32_t) ((getNumChannels() * getSampleRate() * getBitDepth()) / 8);
+        uint32_t numBytesPerSecond = getNumChannels() * getSampleRate() * getBitDepth() / 8;
         addInt32ToFileData(fileData, numBytesPerSecond);
 
-        int16_t numBytesPerBlock = getNumChannels() * (getBitDepth() / 8);
+        uint16_t numBytesPerBlock = getNumChannels() * getBitDepth() / 8;
+
         addInt16ToFileData(fileData, numBytesPerBlock);
 
-        addInt16ToFileData(fileData, (int16_t) getBitDepth());
+        addInt16ToFileData(fileData, getBitDepth());
+
 
         // -----------------------------------------------------------
         // DATA CHUNK
         addStringToFileData(fileData, "data");
         addInt32ToFileData(fileData, dataChunkSize);
+
+
     }
 
     bool save(std::string filePath, const AudioBuffer& samples) {
@@ -182,8 +201,8 @@ public:
             std::cout.write((char*) fileData.data(), fileData.size());
         }
 
-        for (int i = 0; i < getNumSamplesPerChannel(); i++) {
-            for (int channel = 0; channel < getNumChannels(); channel++) {
+        for (uint32_t i = 0; i < getNumSamplesPerChannel(); i++) {
+            for (uint16_t channel = 0; channel < getNumChannels(); channel++) {
 
                 if (out != NULL) {
                     out->write((char*) &samples[channel][i], sizeof (T));
@@ -297,9 +316,9 @@ private:
 
     //=============================================================
     uint32_t sampleRate;
-    int bitDepth;
+    uint16_t bitDepth;
     size_t numSamples;
-    uint8_t numChannels;
+    uint16_t numChannels;
 };
 
 
