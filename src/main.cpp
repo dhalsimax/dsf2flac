@@ -62,6 +62,7 @@ typedef struct {
 template class AudioFile<DopSample>;
 
 #define flacBlockLen 1024
+#define waveBlockLen 1024
 
 using boost::timer::cpu_timer;
 using boost::timer::cpu_times;
@@ -467,22 +468,24 @@ int dop_track_helper_wave(
         dsr->step();
     }
     // create a FLAC__int32 buffer to hold the samples as they are converted
-    unsigned int bufferLen = dsr->getNumChannels() * flacBlockLen;
+    unsigned int bufferLen = dsr->getNumChannels() * waveBlockLen;
     FLAC__int32* buffer = new FLAC__int32[bufferLen];
-    size_t NumSamples = bufferLen / dsr->getNumChannels();
+    size_t NumChannels = dsr->getNumChannels();
+    size_t NumSamples = bufferLen / NumChannels;
 
-    DopSample Tmp;
+    DopSample* Tmp;
 
     // MAIN CONVERSION LOOP //
-    while (dsr->getPosition() <= endPos - flacBlockLen * 16) {
+    while (dsr->getPosition() <= endPos - waveBlockLen) {
         fileData.clear();
         dopp.pack_buffer(buffer, bufferLen);
         for (size_t s = 0; s < NumSamples; s++) {
-            for (size_t c = 0; c < dsr->getNumChannels(); c++) {
-                memcpy(&Tmp, &buffer[s * dsr->getNumChannels() + c], sizeof (Tmp));
-                fileData.push_back(Tmp.Bits1);
-                fileData.push_back(Tmp.Bits2);
-                fileData.push_back(Tmp.Marker);
+            for (size_t c = 0; c < NumChannels; c++) {
+                Tmp = (DopSample*) & buffer[s * NumChannels + c];
+
+                fileData.push_back(Tmp->Bits1);
+                fileData.push_back(Tmp->Bits2);
+                fileData.push_back(Tmp->Marker);
             }
         }
         if (out != NULL) {
@@ -501,11 +504,12 @@ int dop_track_helper_wave(
         fileData.clear();
         dopp.pack_buffer(buffer, bufferLen);
         for (size_t s = 0; s < NumSamples; s++) {
-            for (size_t c = 0; c < dsr->getNumChannels(); c++) {
-                memcpy(&Tmp, &buffer[s * dsr->getNumChannels() + c], sizeof (Tmp));
-                fileData.push_back(Tmp.Bits1);
-                fileData.push_back(Tmp.Bits2);
-                fileData.push_back(Tmp.Marker);
+            for (size_t c = 0; c < NumChannels; c++) {
+                Tmp = (DopSample*) & buffer[s * NumChannels + c];
+
+                fileData.push_back(Tmp->Bits1);
+                fileData.push_back(Tmp->Bits2);
+                fileData.push_back(Tmp->Marker);
             }
         }
         if (out != NULL) {
@@ -610,6 +614,8 @@ int main(int argc, char **argv) {
         outpath = inpath;
         if (args_info.wav_flag && args_info.dop_flag) {
             outpath.replace_extension(".wav");
+        } else {
+            outpath.replace_extension(".flac");
         }
     }
 
