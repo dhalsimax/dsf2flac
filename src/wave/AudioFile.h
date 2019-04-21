@@ -1,6 +1,7 @@
 //=======================================================================
 /** @file AudioFile.h
- *  @author Adam Stark
+ *  original file @author Adam Stark
+ *  modified for dsf2flac.dop256
  *  @copyright Copyright (C) 2017  Adam Stark
  *
  * This file is part of the 'AudioFile' library
