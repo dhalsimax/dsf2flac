@@ -165,7 +165,10 @@ int pcm_track_helper(
 
     // initialize encoder
     if (ok) {
-        init_status = encoder.init(outpath.c_str());
+        if (!strcmp(outpath.c_str(), "-"))
+            init_status = encoder.init((FILE *) stdout);
+        else // outpath.c_str());
+            init_status = encoder.init(outpath.c_str());
         if (init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
             fprintf(stderr, "ERROR: initializing encoder: %s\n", FLAC__StreamEncoderInitStatusString[init_status]);
             ok = false;
@@ -326,7 +329,7 @@ int dop_track_helper(
     } else if (dsr->getSamplingFreq() == 5644800) {
         ok &= encoder.set_sample_rate(352800);
     } else {
-        fprintf(stderr, "ERROR: sample rate not supported by FLAC  DoP\n");
+        fprintf(stderr, "ERROR: DOP sample rate > 352800 not supported by FLAC\n");
         return 0;
     }
     ok &= encoder.set_total_samples_estimate((endPos - startPos) / 16);
@@ -424,17 +427,8 @@ int dop_track_helper_wave(
 
     AudioFile<DopSample> File;
 
-    if (dsr->getSamplingFreq() == 2822400) {
-        File.setSampleRate(176400);
-    } else if (dsr->getSamplingFreq() == 5644800) {
-        File.setSampleRate(352800);
-    } else if (dsr->getSamplingFreq() == 11289600) {
-        File.setSampleRate(705600);
-    } else {
-        fprintf(stderr, "ERROR: sample rate not supported by WAVE DoP\n");
-        return 0;
-    }
 
+    File.setSampleRate(dsr->getSamplingFreq() / 16);
     File.setBitDepth(24);
     File.setNumChannels(dsr->getNumChannels());
     File.setNumSamples(endPos / 16);
@@ -560,7 +554,12 @@ int do_dop_conversion(
             trackOutPath = outpath;
         }
 
+
         fprintf(stderr, "Output file\n\t%s\n", trackOutPath.c_str());
+        fprintf(stderr, "\tTrack number: %u\n", n);
+        fprintf(stderr, "\tTrack start: %llu\n", dsr->getTrackStart(n)*1ULL);
+        fprintf(stderr, "\tTrack end: %llu\n", dsr->getTrackEnd(n)*1ULL);
+
         // use the pcm_track_helper
         if (wave) {
             ok &= dop_track_helper_wave(trackOutPath, dsr, trackStart, trackEnd, dsr->getID3Tag(n));
