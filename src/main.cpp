@@ -629,17 +629,18 @@ int main(int argc, char **argv) {
         return 0;
     }
 
+    fprintf(stderr, "Input file\n\t%s\n", inpath.c_str());
+    dsr->dispFileInfo();
+
     // do the conversion into PCM or DoP
     if (!dop) {
         // feedback some info to the user
-        fprintf(stderr, "Input file\n\t%s\n", inpath.c_str());
         fprintf(stderr, "Output format\n\tSampleRate: %dHz\n\tDepth: %dbit\n\tDither: %s\n\tScale: %1.1fdB\n", fs, bits, (dither) ? "true" : "false", userScaleDB);
         //printf("\tIdleSample: 0x%02x\n",dsr->getIdleSample());
 
         return do_pcm_conversion(dsr, fs, bits, dither, userScale, inpath, outpath);
     } else {
         // feedback some info to the user
-        fprintf(stderr, "Input file\n\t%s\n", inpath.c_str());
         fprintf(stderr, "Output format\n\tDSD samples packed as DoP\n");
 
         return do_dop_conversion(dsr, inpath, outpath, args_info.wav_flag);

@@ -123,6 +123,8 @@ public:
 
 	/// convert latin1 encoded char into utf8.
 	static char* latin1_to_utf8(char* latin1);
+
+        virtual void dispFileInfo()=0;
 protected:
 	/// Allocates the circular buffers.
 	/// Child classes need to call this once they know the number of channels!

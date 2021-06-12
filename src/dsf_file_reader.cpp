@@ -350,18 +350,18 @@ bool DsfFileReader::checkIdent(dsf2flac_int8* a, dsf2flac_int8* b)
 
 void DsfFileReader::dispFileInfo()
 {
-	printf("filesize: %lu\n",fileSz);
-	printf("metaChunkPointer: %lu\n",metaChunkPointer);
-	printf("sampleDataPointer: %lu\n",sampleDataPointer);
-	printf("dataChunkSz: %lu\n",dataChunkSz);
-	printf("formatVer: %u\n",formatVer);
-	printf("formatID: %u\n",formatID);
-	printf("chanType: %u\n",chanType);
-	printf("chanNum: %u\n",chanNum);
-	printf("samplingFreq: %u\n",samplingFreq);
-	printf("samplesPerChar: %u\n",samplesPerChar);
-	printf("sampleCount: %lu\n",sampleCount);
-	printf("blockSzPerChan: %u\n",blockSzPerChan);
+	fprintf(stderr,"filesize: %lu\n",fileSz);
+	fprintf(stderr,"metaChunkPointer: %lu\n",metaChunkPointer);
+	fprintf(stderr,"sampleDataPointer: %lu\n",sampleDataPointer);
+	fprintf(stderr,"dataChunkSz: %lu\n",dataChunkSz);
+	fprintf(stderr,"formatVer: %u\n",formatVer);
+	fprintf(stderr,"formatID: %u\n",formatID);
+	fprintf(stderr,"chanType: %u\n",chanType);
+	fprintf(stderr,"chanNum: %u\n",chanNum);
+	fprintf(stderr,"samplingFreq: %u\n",samplingFreq);
+	fprintf(stderr,"samplesPerChar: %u\n",samplesPerChar);
+	fprintf(stderr,"sampleCount: %lu\n",sampleCount);
+	fprintf(stderr,"blockSzPerChan: %u\n",blockSzPerChan);
 
 	return;
 }

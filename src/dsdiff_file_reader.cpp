@@ -328,7 +328,7 @@ bool DsdiffFileReader::readChunk_FRM8(dsf2flac_uint64 chunkStart)
 		} else if ( checkIdent(ident,const_cast<dsf2flac_int8*>("DSTI")) ) {
 			readChunk_DSTI(subChunkStart);
 		} else
-			printf("WARNING: unknown chunk type: %s\n",ident);
+			fprintf(stderr,"WARNING: unknown chunk type: %s\n",ident);
 		// move to the next chunk
 		subChunkStart = subChunkStart + subChunkSz;
 	}
@@ -414,7 +414,7 @@ bool DsdiffFileReader::readChunk_PROP(dsf2flac_uint64 chunkStart)
 		} else if ( !found_lsco && checkIdent(ident,const_cast<dsf2flac_int8*>("LSCO")) ) {
 			found_lsco = readChunk_LSCO(subChunkStart);
 		} else
-			printf("WARNING: unknown or repeated chunk type: %s\n",ident);
+			fprintf(stderr,"WARNING: unknown or repeated chunk type: %s\n",ident);
 		// move to the next chunk
 		subChunkStart = subChunkStart + subChunkSz;
 	}
@@ -634,7 +634,7 @@ bool DsdiffFileReader::readChunk_DIIN(dsf2flac_uint64 chunkStart)
 		} else if ( checkIdent(ident,const_cast<dsf2flac_int8*>("MARK")) ) {
 			readChunk_MARK(subChunkStart);
 		} else
-			printf("WARNING: unknown chunk type: %s\n",ident);
+			fprintf(stderr,"WARNING: unknown chunk type: %s\n",ident);
 		// move to the next chunk
 		subChunkStart = subChunkStart + subChunkSz;
 	}
@@ -973,7 +973,7 @@ bool DsdiffFileReader::readChunk_DST(dsf2flac_uint64 chunkStart)
 			found_dstf = true;
 			sampleDataPointer = subChunkStart;
 		} else
-			printf("WARNING: unknown chunk type: %s\n",ident);
+			fprintf(stderr,"WARNING: unknown chunk type: %s\n",ident);
 		// move to the next chunk
 		subChunkStart = subChunkStart + subChunkSz;
 	}
@@ -1050,17 +1050,17 @@ bool DsdiffFileReader::checkIdent(dsf2flac_int8* a, dsf2flac_int8* b)
 
 void DsdiffFileReader::dispFileInfo()
 {
-	printf("dsdiffVersion: %08x\n",dsdiffVersion);
-	printf("samplingRate: %u\n",samplingFreq);
-	printf("chanNum: %u\n",chanNum);
+	fprintf(stderr,"dsdiffVersion: %08x\n",dsdiffVersion);
+	fprintf(stderr,"samplingRate: %u\n",samplingFreq);
+	fprintf(stderr,"chanNum: %u\n",chanNum);
 	for (int i=0; i<chanNum; i++)
-		printf("chanIdent%u: %s\n",i,chanIdents[i]);
-	printf("compressionType: %s\n",compressionType);
-	printf("compressionName: %s\n",compressionName);
-	printf("ast_hours: %u\n",ast.hours);
-	printf("ast_mins: %d\n",ast.minutes);
-	printf("ast_secs: %d\n",ast.seconds);
-	printf("ast_samples: %u\n",ast.samples);
-	printf("sampleDataPointer: %lu\n",sampleDataPointer);
-	printf("sampleCount: %lu\n",sampleCountPerChan);
+		fprintf(stderr,"chanIdent%u: %s\n",i,chanIdents[i]);
+	fprintf(stderr,"compressionType: %s\n",compressionType);
+	fprintf(stderr,"compressionName: %s\n",compressionName);
+	fprintf(stderr,"ast_hours: %u\n",ast.hours);
+	fprintf(stderr,"ast_mins: %d\n",ast.minutes);
+	fprintf(stderr,"ast_secs: %d\n",ast.seconds);
+	fprintf(stderr,"ast_samples: %u\n",ast.samples);
+	fprintf(stderr,"sampleDataPointer: %lu\n",sampleDataPointer);
+	fprintf(stderr,"sampleCount: %lu\n",sampleCountPerChan);
 }
