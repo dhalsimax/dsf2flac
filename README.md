@@ -50,4 +50,6 @@ make
 
 Well tested up to DSD256 dsf to DoP wav conversion with rme ADI 2 DAC.
 
-Replace all after ffmpeg -f parameter with your alsa device name to try it out with your DAC. List of available alsa device names can be obtained with alsa command: `aplay -L`
+The list of available alsa device names can be obtained with alsa command: `aplay -L`
+
+Replace everything after the `ffmpeg -f` parameter with your alsa device name to try it out with your DAC.
