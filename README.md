@@ -11,21 +11,20 @@ Support conversion from dsf or dff to wav files via DoP. DSD256 is supported by 
 
 # Compiling
 
-download zip or clone. Make directory "build" under dsf2flac root dir then:
+Clone the repository: `git clone https://github.com/dhalsimax/dsf2flac`.
 
+Then run the following commands:
+
+```Terminal
 ds2flac/build # cmake ..
-
-and:
-
 ds2flac/build # make
+```
 
-# FFmpeg ADI-2 DAC pipe example:
+# Examples
+## FFmpeg ADI-2 DAC pipe example
 
-dsf2flac -d -w -i "pathtofile" -o -  | ffmpeg -i - -c pcm_s32le -f alsa iec958:CARD=DAC57750571,DEV=0
+`dsf2flac -d -w -i "pathtofile" -o -  | ffmpeg -i - -c pcm_s32le -f alsa iec958:CARD=DAC57750571,DEV=0`
 
 Well tested up to DSD256 dsf to DoP wav conversion with rme ADI 2 DAC.
 
-Replace all after ffmpeg -f parameter with your alsa device name to try it out with your DAC. List of available alsa device names can be obtained with alsa command:
-
-aplay -L
-
+Replace all after ffmpeg -f parameter with your alsa device name to try it out with your DAC. List of available alsa device names can be obtained with alsa command: `aplay -L`
