@@ -9,13 +9,24 @@ I wish many thanks to all the authors involved in such tool. For me this is the 
 
 Support conversion from dsf or dff to wav files via DoP. DSD256 is supported by converting source dsf or dff to a DoP stream encapsulated in a 2 channels wav file 705600hz, 24 bit as flac actually does not support sample rates above 655350.
 
+# Dependencies
+Make sure to install the following:
+```
+sudo apt install libboost-all-dev
+sudo apt install libogg-dev
+sudo apt install libflac-dev
+sudo apt install libflac++-dev
+sudo apt install libid3-3.8.3-dev
+sudo apt install libz-dev
+```
+
 # Compiling
 
 Clone the repository: `git clone https://github.com/dhalsimax/dsf2flac`.
 
 Then run the following commands:
 
-```Terminal
+```
 ds2flac/build # cmake ..
 ds2flac/build # make
 ```
